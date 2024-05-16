@@ -6,7 +6,7 @@
 
 MarkupLM is a simple but effective multi-modal pre-training method of text and markup language for visually-rich document understanding and information extraction tasks, such as webpage QA and webpage information extraction. MarkupLM achieves the SOTA results on multiple datasets. For more details, please refer to our paper:
 
-[MarkupLM: Pre-training of Text and Markup Language for Visually-rich Document Understanding](https://arxiv.org/abs/2110.08518)  Junlong Li, Yiheng Xu, Lei Cui, Furu Wei, [Preprint](https://github.com/microsoft/unilm/tree/master/markuplm#)
+[MarkupLM: Pre-training of Text and Markup Language for Visually-rich Document Understanding](https://arxiv.org/abs/2110.08518)  Junlong Li, Yiheng Xu, Lei Cui, Furu Wei, [ACL 2022](https://github.com/microsoft/unilm/tree/master/markuplm#)
 
 The overview of our framework is as follows:
 <div align="center">
@@ -29,7 +29,7 @@ We pre-train MarkupLM on a subset of the CommonCrawl dataset.
 | Name  | HuggingFace |
 | - | - | 
 | MarkupLM-Base | [microsoft/markuplm-base](https://huggingface.co/microsoft/markuplm-base) |
-| MarkupM-Large | [microsoft/markuplm-large](https://huggingface.co/microsoft/markuplm-large) |
+| MarkupLM-Large | [microsoft/markuplm-large](https://huggingface.co/microsoft/markuplm-large) |
 
 An example might be ``model = markuplm.from_pretrained("microsoft/markuplm-base")``.
 

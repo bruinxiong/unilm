@@ -15,6 +15,8 @@ import tempfile
 import shutil
 import numpy as np
 
+from functools import partial
+
 import torch
 from torch import nn
 from torch.nn import CrossEntropyLoss, MSELoss
@@ -75,11 +77,11 @@ PRETRAINED_MODEL_ARCHIVE_MAP = {
     'bert-base-multilingual-uncased': "https://s3.amazonaws.com/models.huggingface.co/bert/bert-base-multilingual-uncased.tar.gz",
     'bert-base-multilingual-cased': "https://s3.amazonaws.com/models.huggingface.co/bert/bert-base-multilingual-cased.tar.gz",
     'bert-base-chinese': "https://s3.amazonaws.com/models.huggingface.co/bert/bert-base-chinese.tar.gz",
-    'unilm-base-cased': "https://unilm.blob.core.windows.net/ckpt/unilm1-base-cased.bin",
-    'unilm-large-cased': "https://unilm.blob.core.windows.net/ckpt/unilm1-large-cased.bin",
-    'unilm1-base-cased': "https://unilm.blob.core.windows.net/ckpt/unilm1-base-cased.bin",
-    'unilm1-large-cased': "https://unilm.blob.core.windows.net/ckpt/unilm1-large-cased.bin",
-    'unilm1.2-base-uncased': "https://unilm.blob.core.windows.net/ckpt/unilm1.2-base-uncased.bin"
+    'unilm-base-cased': "https://conversationhub.blob.core.windows.net/beit-share-public/ckpt/unilm1-base-cased.bin?sv=2021-10-04&st=2023-06-08T11%3A16%3A02Z&se=2033-06-09T11%3A16%3A00Z&sr=c&sp=r&sig=N4pfCVmSeq4L4tS8QbrFVsX6f6q844eft8xSuXdxU48%3D",
+    'unilm-large-cased': "https://conversationhub.blob.core.windows.net/beit-share-public/ckpt/unilm1-large-cased.bin?sv=2021-10-04&st=2023-06-08T11%3A16%3A02Z&se=2033-06-09T11%3A16%3A00Z&sr=c&sp=r&sig=N4pfCVmSeq4L4tS8QbrFVsX6f6q844eft8xSuXdxU48%3D",
+    'unilm1-base-cased': "https://conversationhub.blob.core.windows.net/beit-share-public/ckpt/unilm1-base-cased.bin?sv=2021-10-04&st=2023-06-08T11%3A16%3A02Z&se=2033-06-09T11%3A16%3A00Z&sr=c&sp=r&sig=N4pfCVmSeq4L4tS8QbrFVsX6f6q844eft8xSuXdxU48%3D",
+    'unilm1-large-cased': "https://conversationhub.blob.core.windows.net/beit-share-public/ckpt/unilm1-large-cased.bin?sv=2021-10-04&st=2023-06-08T11%3A16%3A02Z&se=2033-06-09T11%3A16%3A00Z&sr=c&sp=r&sig=N4pfCVmSeq4L4tS8QbrFVsX6f6q844eft8xSuXdxU48%3D",
+    'unilm1.2-base-uncased': "https://conversationhub.blob.core.windows.net/beit-share-public/ckpt/unilm1.2-base-uncased.bin?sv=2021-10-04&st=2023-06-08T11%3A16%3A02Z&se=2033-06-09T11%3A16%3A00Z&sr=c&sp=r&sig=N4pfCVmSeq4L4tS8QbrFVsX6f6q844eft8xSuXdxU48%3D"
 }
 CONFIG_NAME = 'config.json'
 WEIGHTS_NAME = 'pytorch_model.bin'
@@ -1083,6 +1085,33 @@ def relative_position_bucket(relative_position, bidirectional=True, num_buckets=
     return ret
 
 
+def get_div_func():
+    # a crude code fix floor div for multiple torch version
+    # https://github.com/microsoft/unilm/issues/297
+    # Thanks github user @guijuzhejiang, @piskunow and @zengyan-97
+    x = torch.ones(size=(1,), dtype=torch.long) * 11
+    try:
+        # for pytorch 1.8+
+        div_func = partial(torch.div, rounding_mode='floor')
+        y = div_func(x, 4)
+        return div_func
+    except:
+        pass
+    try:
+        # for pytorch 1.6 & 1.7
+        div_func = torch.floor_divide
+        y = div_func(x, 4)
+        return div_func
+    except:
+        pass
+
+    div_func = torch.div
+    y = div_func(x, 4)
+    if y.dtype != torch.long:
+        raise NotImplementedError("Can not found right floor div function !")
+    return div_func
+
+
 class BertForSeq2SeqDecoder(PreTrainedBertModel):
     """refer to BertForPreTraining"""
 
@@ -1110,6 +1139,8 @@ class BertForSeq2SeqDecoder(PreTrainedBertModel):
         assert mode in ("s2s", "l2r")
         self.mode = mode
         self.pos_shift = pos_shift
+
+        self.div_func = get_div_func()
 
     def forward(self, input_ids, token_type_ids, position_ids, attention_mask, task_idx=None, mask_qkv=None):
         if self.search_beam_size > 1:
@@ -1284,7 +1315,8 @@ class BertForSeq2SeqDecoder(PreTrainedBertModel):
                 kk_scores += last_eos * (-10000.0) + last_seq_scores
                 kk_scores = torch.reshape(kk_scores, [batch_size, K * K])
                 k_scores, k_ids = torch.topk(kk_scores, k=K)
-                back_ptrs = torch.div(k_ids, K)
+                # back_ptrs = torch.div(k_ids, K)
+                back_ptrs = self.div_func(k_ids, K)
                 kk_ids = torch.reshape(kk_ids, [batch_size, K * K])
                 k_ids = torch.gather(kk_ids, 1, k_ids)
             step_back_ptrs.append(back_ptrs)

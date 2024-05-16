@@ -129,9 +129,9 @@ def load_pavimodel_dist(model_path, map_location=None):
     rank 0."""
     try:
         from pavi import modelcloud
-    except ImportError:
+    except ImportError as e:
         raise ImportError(
-            'Please install pavi to load checkpoint from modelcloud.')
+            'Please install pavi to load checkpoint from modelcloud.') from e
     rank, world_size = get_dist_info()
     rank = int(os.environ.get('LOCAL_RANK', rank))
     if rank == 0:
@@ -363,10 +363,10 @@ def load_checkpoint(model,
     if "rel_pos_bias.relative_position_bias_table" in state_dict:
         if rank == 0:
             print("Expand the shared relative position embedding to each layers. ")
-            num_layers = model.get_num_layers()
-            rel_pos_bias = state_dict["rel_pos_bias.relative_position_bias_table"]
-            for i in range(num_layers):
-                state_dict["blocks.%d.attn.relative_position_bias_table" % i] = rel_pos_bias.clone()
+        num_layers = model.get_num_layers()
+        rel_pos_bias = state_dict["rel_pos_bias.relative_position_bias_table"]
+        for i in range(num_layers):
+            state_dict["blocks.%d.attn.relative_position_bias_table" % i] = rel_pos_bias.clone()
 
         state_dict.pop("rel_pos_bias.relative_position_bias_table")
 
@@ -603,9 +603,9 @@ def save_checkpoint(model, filename, optimizer=None, meta=None):
         try:
             from pavi import modelcloud
             from pavi.exception import NodeNotFoundError
-        except ImportError:
+        except ImportError as e:
             raise ImportError(
-                'Please install pavi to load checkpoint from modelcloud.')
+                'Please install pavi to load checkpoint from modelcloud.') from e
         model_path = filename[7:]
         root = modelcloud.Folder()
         model_dir, model_name = osp.split(model_path)

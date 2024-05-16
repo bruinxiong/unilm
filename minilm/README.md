@@ -42,6 +42,17 @@ The table presents the dev results of different small models on MNLI and SQuAD 2
 The link to the pre-trained multilingual model:
 - [Multilingual-MiniLMv1-L12-H384](https://1drv.ms/u/s!AjHn0yEmKG8qixM1DIyLGmdRqWYl?e=uq2kDh): 12-layer, 384-hidden, 12-heads, 21M Transformer parameters, 96M embedding parameters
 
+## Usage
+```python
+>>> from transformers import AutoTokenizer, AutoModel
+  
+>>> tokenizer = AutoTokenizer.from_pretrained("microsoft/Multilingual-MiniLM-L12-H384")
+>>> model = AutoModel.from_pretrained("microsoft/Multilingual-MiniLM-L12-H384")
+
+>>> inputs = tokenizer("Hello world!", return_tensors="pt")
+>>> outputs = model(**inputs)
+```
+
 Multilingual MiniLM uses the same tokenizer as XLM-R. But the Transformer architecture of our model is the same as BERT. We provide the fine-tuning code on XNLI based on [huggingface/transformers](https://github.com/huggingface/transformers). Please replace `run_xnli.py` in transformers with ours to fine-tune multilingual MiniLM.  
 
 We evaluate the multilingual MiniLM on cross-lingual natural language inference benchmark (XNLI) and cross-lingual question answering benchmark (MLQA).
@@ -94,6 +105,17 @@ The links to the pre-trained models:
 - [MiniLMv1-L12-H384-uncased](https://1drv.ms/u/s!AjHn0yEmKG8qixAYyu2Fvq5ulnU7?e=DFApTA): 12-layer, 384-hidden, 12-heads, 33M parameters, 2.7x faster than BERT-Base
 - MiniLMv1-L6-H384-uncased: 6-layer, 384-hidden, 12-heads, 22M parameters, 5.3x faster than BERT-Base
 - MiniLMv1-L6-H768-uncased: 6-layer, 768-hidden, 12-heads, 66M parameters, 2.0x faster than BERT-Base
+
+## Usage
+```python
+>>> from transformers import AutoTokenizer, AutoModel
+  
+>>> tokenizer = AutoTokenizer.from_pretrained("microsoft/MiniLM-L12-H384-uncased")
+>>> model = AutoModel.from_pretrained("microsoft/MiniLM-L12-H384-uncased")
+
+>>> inputs = tokenizer("Hello world!", return_tensors="pt")
+>>> outputs = model(**inputs)
+```
 
 ## Fine-tuning on NLU tasks
 MiniLM has the same Transformer architecture as BERT. For NLU tasks, our models in Pytorch version can be loaded using the BERT code in [huggingface/transformers](https://github.com/huggingface/transformers). The config file is needed to be replaced with MiniLM's.
@@ -219,13 +241,35 @@ We also report the results following the data split as in [(Zhao et al., 2018)](
 If you find MiniLM useful in your research, please cite the following paper:
 
 ``` latex
-@misc{wang2020minilm,
-    title={MiniLM: Deep Self-Attention Distillation for Task-Agnostic Compression of Pre-Trained Transformers},
-    author={Wenhui Wang and Furu Wei and Li Dong and Hangbo Bao and Nan Yang and Ming Zhou},
-    year={2020},
-    eprint={2002.10957},
-    archivePrefix={arXiv},
-    primaryClass={cs.CL}
+@inproceedings{minilm,
+author = {Wang, Wenhui and Wei, Furu and Dong, Li and Bao, Hangbo and Yang, Nan and Zhou, Ming},
+title = {{MiniLM}: Deep Self-Attention Distillation for Task-Agnostic Compression of Pre-Trained Transformers},
+year = {2020},
+isbn = {9781713829546},
+publisher = {Curran Associates Inc.},
+address = {Red Hook, NY, USA},
+booktitle = {Proceedings of the 34th International Conference on Neural Information Processing Systems},
+articleno = {485},
+numpages = {13},
+location = {Vancouver, BC, Canada},
+series = {NIPS'20}
+}
+
+@inproceedings{minilmv2,
+    title = "{M}ini{LM}v2: Multi-Head Self-Attention Relation Distillation for Compressing Pretrained Transformers",
+    author = "Wang, Wenhui  and
+      Bao, Hangbo  and
+      Huang, Shaohan  and
+      Dong, Li  and
+      Wei, Furu",
+    booktitle = "Findings of the Association for Computational Linguistics: ACL-IJCNLP 2021",
+    month = aug,
+    year = "2021",
+    address = "Online",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2021.findings-acl.188",
+    doi = "10.18653/v1/2021.findings-acl.188",
+    pages = "2140--2151",
 }
 ```
 
